@@ -1,6 +1,7 @@
+An Ensemble-Based Parallel Deep Learning Classifier with PSO-BP Optimization for Malware Detection
 # ECDLP
 
-#To run distributed and parallel computing in main PC
+#To run distributed and parallel computing, You need to install, Ray library, and redis server
 
 pip install -U "ray[default]"
 
