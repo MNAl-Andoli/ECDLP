@@ -49,6 +49,76 @@ def create_keras_model(input_dim):
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     
     return model
+def model1():
+    
+    #create the model
+    dim=len(x_train[0])
+    # define the keras model
+    model = Sequential()
+    model.add(Dense(128, input_dim=dim, activation='relu'))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(1, activation='sigmoid'))
+    # compile the keras model
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    
+    return model
+
+def model2():
+    
+    #create the model
+    dim=len(x_train[0])
+    # define the keras model
+    model = Sequential()
+    model.add(Dense(128, input_dim=dim, activation='relu'))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(1, activation='sigmoid'))
+    # compile the keras model
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    
+    return model
+
+def model3():
+    
+    #create the model
+    dim=len(x_train[0])
+    # define the keras model
+    model = Sequential()
+    model.add(Dense(128, input_dim=dim, activation='relu'))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(1, activation='softmax'))
+    # compile the keras model
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    
+    return model
+
+def model4():
+    
+    #create the model
+    dim=len(x_train[0])
+    # define the keras model
+    model = Sequential()
+    model.add(Dense(128, input_dim=dim, activation='relu'))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(1, activation='softmax'))
+    # compile the keras model
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    
+    return model
+
+def model5():
+    
+    #create the model
+    dim=len(x_train[0])
+    # define the keras model
+    model = Sequential()
+    model.add(Dense(128, input_dim=dim, activation='relu'))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(1, activation='sigmoid'))
+    # compile the keras model
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    
+    return model
+
 
 # Use CPU and GPU for parallization
 #@ray.remote(num_gpus=1)
@@ -227,7 +297,40 @@ for i in range(PSO_epochs):
     pso1=PSO(weights)
     pso1.calc_fitness_func(results, weights,actors)
     
+model = []
+model.append(model1())
+model.append(model2())
+model.append(model3())
+model.append(model4())
+model.append(model5())
 
+#load model
+loaded_models=[]
+for i in range(len(model)):
+    loaded_model=keras.models.load_model("my_model" + str(i+1) + ".h5")
+    loaded_models.append(loaded_model)
+    loaded_models[i].compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    
+    # make an ensemble prediction for multi-class classification
+def ensemble_predictions(models, testX):
+    labels = []    
+    for m in models:
+        predicts = (m.predict(x_test) > 0.5).astype("int32")
+        #redicts=[list(i) for i in predicts]
+        labels.append(predicts)
+
+    # Ensemble with voting
+    labels = np.array(labels)
+    labels = np.transpose(labels)
+
+    labels = scipy.stats.mode(labels, 2)[0]
+
+    labels = np.squeeze(labels)
+    
+    return labels
+
+# You can add more models like inception, vgg-16/vgg-19 etc. to improve overall accuracy during ensemble
 t2=time.time()
 print("time consumed is: ", t2-t1)
 
@@ -239,8 +342,6 @@ import numpy as np
 loaded_model=keras.models.load_model("parallel_model.h5")
 loaded_model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-from sklearn.preprocessing import StandardScaler
-
 x_test=np.load("X_test.npy")
 
 #====z_score normalization
@@ -249,5 +350,12 @@ scaler2.fit(x_test)
 x_test=scaler2.transform(x_test)
 #====
 y_test=np.load("y_test.npy")
-_, accuracy2 = loaded_model.evaluate(x_test, y_test)
-print('Accuracy: %.2f' % (accuracy2*100))
+
+
+predict_labels=ensemble_predictions(loaded_models, x_test)
+Enemble_accuracy = accuracy_score(y_test,predict_labels)
+
+for i in range(len(loaded_models)):
+    _, accuracy2 = loaded_models[i].evaluate(x_test, y_test)
+    print('Accuracy: %.2f' % (accuracy2*100))
+print ("Ensemble accuracy: ", Enemble_accuracy)
