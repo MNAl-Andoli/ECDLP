@@ -49,76 +49,6 @@ def create_keras_model(input_dim):
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     
     return model
-def model1():
-    
-    #create the model
-    dim=len(x_train[0])
-    # define the keras model
-    model = Sequential()
-    model.add(Dense(128, input_dim=dim, activation='relu'))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
-    # compile the keras model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    
-    return model
-
-def model2():
-    
-    #create the model
-    dim=len(x_train[0])
-    # define the keras model
-    model = Sequential()
-    model.add(Dense(128, input_dim=dim, activation='relu'))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
-    # compile the keras model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    
-    return model
-
-def model3():
-    
-    #create the model
-    dim=len(x_train[0])
-    # define the keras model
-    model = Sequential()
-    model.add(Dense(128, input_dim=dim, activation='relu'))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(1, activation='softmax'))
-    # compile the keras model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    
-    return model
-
-def model4():
-    
-    #create the model
-    dim=len(x_train[0])
-    # define the keras model
-    model = Sequential()
-    model.add(Dense(128, input_dim=dim, activation='relu'))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(1, activation='softmax'))
-    # compile the keras model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    
-    return model
-
-def model5():
-    
-    #create the model
-    dim=len(x_train[0])
-    # define the keras model
-    model = Sequential()
-    model.add(Dense(128, input_dim=dim, activation='relu'))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
-    # compile the keras model
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    
-    return model
-
 
 # Use CPU and GPU for parallization
 #@ray.remote(num_gpus=1)
@@ -261,7 +191,7 @@ class PSO(object):
             
 
         
-    def calc_fitness_func(self, loss_func_all_epochs, new_local_weights, actors):
+    def calc_fitness_func(self, loss_func_all_epochs, new_local_weights, actors, i):
                     
         #get local and  global weights
         self.update_global_best(new_local_weights,loss_func_all_epochs)
@@ -270,6 +200,7 @@ class PSO(object):
         #evaluate the models on all dataset after updating weights 
         loss_values=ray.get([actors[m].evaluate_for_PSO.remote(new_local_weights[m]) for m in range(num_models)])
         print(loss_values)
+        actors[i].save('my_actor' + str(i+1)+ '.h5')
         #set global position to the best one
 
 t1=time.time()
@@ -295,18 +226,13 @@ for i in range(PSO_epochs):
     weights=ray.get(weights_ids)
 
     pso1=PSO(weights)
-    pso1.calc_fitness_func(results, weights,actors)
+    pso1.calc_fitness_func(results, weights,actors, i)
     
-model = []
-model.append(model1())
-model.append(model2())
-model.append(model3())
-model.append(model4())
-model.append(model5())
+models = actors
 
 #load model
 loaded_models=[]
-for i in range(len(model)):
+for i in range(len(models)):
     loaded_model=keras.models.load_model("my_model" + str(i+1) + ".h5")
     loaded_models.append(loaded_model)
     loaded_models[i].compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
