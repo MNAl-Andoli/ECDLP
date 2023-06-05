@@ -10,7 +10,7 @@ gpus = tf.config.experimental.list_physical_devices('GPU')
 
 gpu_fraction=0.25
 cpu_fraction=3
-num_models=4
+num_models=5
 partition=True
 local_epochs=200
 PSO_epochs=200
