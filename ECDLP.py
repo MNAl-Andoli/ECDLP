@@ -12,8 +12,8 @@ gpu_fraction=0.25
 cpu_fraction=3
 num_models=4
 partition=True
-local_epochs=10
-PSO_epochs=10
+local_epochs=200
+PSO_epochs=200
 current_global_loss=0
 #ray.nodes()
 
