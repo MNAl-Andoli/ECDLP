@@ -4,7 +4,7 @@ from sklearn.preprocessing import StandardScaler
 from tensorflow import keras
 import time
 ray.init()
-
+ 
 import tensorflow as tf
 gpus = tf.config.experimental.list_physical_devices('GPU')
 
